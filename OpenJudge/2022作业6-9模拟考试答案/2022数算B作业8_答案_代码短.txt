@@ -1,0 +1,213 @@
+****001: 课程表
+----author:2000011710_姜天行,416B
+while True:
+	try:
+		line = input()
+		if line == '':
+			continue
+		n, m = map(int, line.split())
+		g = [[] for i in range(n)]
+		ind = [0] * n
+		for i in range(m):
+			a, b = map(int, input().split())
+			g[b].append(a)
+			ind[a] += 1
+		q = [i for i in range(n) if ind[i] == 0]
+		while q:
+			n1 = q.pop(0)
+			for n2 in g[n1]:
+				ind[n2] -= 1
+				if ind[n2] == 0:
+					q.append(n2)
+		print(not any(ind))
+	except:
+		break
+
+----author:叶飞越_2100010785,477B
+import collections
+while True:
+	try:
+		n,m=map(int,input().split())
+		g=[[] for i in range(n)]
+		e=[0 for i in range(n)]
+		for i in range(m):
+			u,v=map(int,input().split())
+			e[v]+=1
+			g[u].append(v)
+		q=collections.deque()
+		for i in range(n):
+			if e[i]==0:
+				q.append(i)
+		sum=0
+		while len(q):
+			x=q.popleft()
+			sum+=1
+			for y in g[x]:
+				e[y]-=1
+				if e[y]==0:
+					q.append(y)
+		if sum==n:
+			print('True')
+		else:
+			print('False')
+		s=input()
+	except:
+		break
+
+----author:Geert,540B
+import queue
+while True:
+	try:
+		#用以防止空行出现
+		n,m=map(int,input().split())
+		pts=[]
+		ind=[0 for i in range(n)]
+		oute=[[] for i in range(n)]
+		for i in range(m):
+			a,b=map(int,input().split())
+			ind[a] += 1
+			oute[b].append(a)
+		q=queue.Queue()
+		seq=[]
+		for i in range(n):
+			if ind[i]==0:
+				q.put(i)
+		while not q.empty():
+			k=q.get()
+			seq.append(k)
+			for j in oute[k]:
+				ind[j] -= 1
+				if ind[j]==0:
+					q.put(j)
+		if len(seq)!=n:
+			print(False)
+		else:
+			print(True)
+		k=input()
+	except EOFError:
+		break
+
+****002: Pots
+----author:2000011710_姜天行,766B
+m1 = ((0, 1), (-1, 0))
+m2 = ((1, 0), (0, -1))
+a, b, c = map(int, input().split())
+if c in (a, b):
+	exit(print(f'1\nFILL({1 if c == a else 2})'))
+moves = m1 + m2 if a < b else m2 + m1
+g = [None] * (a + b)
+g[0] = 1
+q = [0]
+while q:
+	pos = q.pop()
+	for move in moves:
+		nbr = pos + a * move[0] + b * move[1]
+		if 0 <= nbr < a + b and not g[nbr]:
+			g[nbr] = (pos, move)
+			if nbr == c:
+				break
+			q.insert(0, nbr)
+if g[c] is None:
+	exit(print('impossible'))
+ans = []
+d = {(0, 1): 'FILL(2)\nPOUR(2,1)', (-1, 0): 'DROP(1)\nPOUR(2,1)', (1, 0): 'FILL(1)\nPOUR(1,2)', (0, -1): 'DROP(2)\nPOUR(1,2)'}
+def trv(pos):
+	if not pos:
+		return
+	par, move = g[pos]
+	trv(par)
+	ans.append(d[move])
+trv(c)
+if ans[-1][0] == 'D':
+	ans = ans[:-1]
+print(len(ans) * 2)
+print('\n'.join(ans))
+
+----author:叶飞越_2100010785,773B
+import collections
+a,b,c=map(int,input().split())
+d={(0,0):0}
+q=collections.deque()
+op=collections.deque()
+q.append((0,0))
+op.append('')
+def add(x,y,k,z):
+	if (x,y) in d.keys():
+		return
+	q.append((x,y))
+	op.append(z)
+	d[(x,y)]=k
+flag=1
+while len(q):
+	x=q.popleft()
+	z=op.popleft()
+	k=d[x]+1
+	if x[0]==c or x[1]==c:
+		print(k-1)
+		print(z)
+		flag=0
+		break
+	if x[0]<a:
+		add(a,x[1],k,z+'FILL(1)\n')
+	if x[1]<b:
+		add(x[0],b,k,z+'FILL(2)\n')
+	if x[0]>0:
+		add(0,x[1],k,z+'DROP(1)\n')
+	if x[1]>0:
+		add(x[0],0,k,z+'DROP(2)\n')
+	s=x[0]+x[1]
+	if x[0]<a and x[1]>0:
+		if s>a:
+			add(a,s-a,k,z+'POUR(2,1)\n')
+		else:
+			add(s,0,k,z+'POUR(2,1)\n')
+	if x[0]>0 and x[1]<b:
+		if s>b:
+			add(s-b,b,k,z+'POUR(1,2)\n')
+		else:
+			add(0,s,k,z+'POUR(1,2)\n')
+if flag:
+	print('impossible')
+
+----author:21n2100011493,883B
+A, B, C = map(int, input().split())
+vis = [[1000000 for j in range(B+1)] for i in range(A+1)]
+queue = [[0, 0, '']]
+ans = ''
+result = ['DROP(1)', 'DROP(2)', 'FILL(1)', 'FILL(2)', 'POUR(1,2)', 'POUR(2,1)']
+while queue:
+	vertex = queue.pop(0)
+	a, b, way = vertex[0], vertex[1], vertex[2]
+	if len(way) < vis[a][b]:
+		vis[a][b] = len(way)
+	else:
+		continue
+	if b == C or a == C:
+		ans = way
+		break
+	if a > 0:
+		queue.append([0, b, way+'1'])
+	if b > 0:
+		queue.append([a, 0, way+'2'])
+	if a < A:
+		queue.append([A, b, way+'3'])
+		temp = A - a
+		if b >= temp:
+			queue.append([A, b-temp, way+'6'])
+		else:
+			queue.append([a+b, 0, way+'6'])
+	if b < B:
+		queue.append([a, B, way+'4'])
+		temp = B - b
+		if a >= temp:
+			queue.append([a-temp, B, way+'5'])
+		else:
+			queue.append([0, a+b, way+'5'])
+if ans:
+	print(len(ans))
+	for x in ans:
+		print(result[int(x)-1])
+else:
+	print('impossible')
+
+

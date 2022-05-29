@@ -1,0 +1,1366 @@
+****001: 二叉树
+----author:(C_2100012110_李嘉禾),20ms
+a,b = map(int,input().split())
+while a != b:
+    if a > b:
+        a //= 2
+    else:
+        b //= 2
+print(a)
+
+----author:ayijiang0926,20ms
+def common(x,y):
+    if x==y:
+        return x
+    if x>y:
+        return common(x//2,y)
+    return common(x,y//2)
+while True:
+    try:
+        x, y = map(int, input().split())
+        ans = common(x, y)
+        print(ans)
+    except:
+        break
+
+
+
+----author:曹仁君(1900012451),20ms
+x,y=map(int,input().split())
+m_list=[]
+m=min(x,y)
+n=max(x,y)
+while(True):
+    m_list.append(m)
+    m=m//2
+    if(m==0):
+        break
+while(True):
+    if n in m_list:
+        print(n)
+        break
+    n=n//2
+
+
+
+
+
+****002: 冰阔落 II
+----author:1900015431(YawnSean),2848ms
+class SegmentTree:
+    def __init__(self, data, merge):
+        self.data = data
+        self.n = len(data)
+        self.tree = [None] * (4 * self.n)
+        self._merge = merge
+        if self.n:
+            self._build(0, 0, self.n-1)
+
+
+    def query(self, ql, qr):
+        return self._query(0, 0, self.n-1, ql, qr)
+
+    def update(self, index, value):
+        self.data[index] = value
+        self._update(0, 0, self.n-1, index)
+
+    def _build(self, tree_index, l, r):
+        if l == r:
+            self.tree[tree_index] = self.data[l]
+            return
+        mid = (l+r) // 2
+        left, right = 2 * tree_index + 1, 2 * tree_index + 2 # tree_index的左右子树索引
+        self._build(left, l, mid)
+        self._build(right, mid+1, r)
+        self.tree[tree_index] = self._merge(self.tree[left], self.tree[right])
+
+    def _query(self, tree_index, l, r, ql, qr):
+        if l == ql and r == qr:
+            return self.tree[tree_index]
+        mid = (l+r) // 2
+        left, right = tree_index * 2 + 1, tree_index * 2 + 2
+        if qr <= mid:
+            return self._query(left, l, mid, ql, qr)
+        elif ql > mid:
+            return self._query(right, mid+1, r, ql, qr)
+        return self._merge(self._query(left, l, mid, ql, mid),
+                          self._query(right, mid+1, r, mid+1, qr))
+
+    def _update(self, tree_index, l, r, index):
+        if l == r == index:
+            self.tree[tree_index] = self.data[index]
+            return
+        mid = (l+r)//2
+        left, right = 2 * tree_index + 1, 2 * tree_index + 2
+        if index > mid:
+            self._update(right, mid+1, r, index)
+        else:
+            self._update(left, l, mid, index)
+        self.tree[tree_index] = self._merge(self.tree[left], self.tree[right])
+
+def merge(tmp1, tmp2):
+    if not tmp1: return tmp2
+    if not tmp2: return tmp1
+    length = tmp1[-1] + tmp2[-1]
+    l1, l2 = tmp1[0], tmp2[0]
+    r1, r2 = tmp1[1], tmp2[1]
+    total1, total2 = tmp1[2], tmp2[2]
+    l, r = 0, 0
+    if l1 == tmp1[-1]:
+        l = l1 + l2
+    else:
+        l = l1
+    if r2 == tmp2[-1]:
+        r = r1 + r2
+    else:
+        r = r2
+    total = max(total1, total2, l2 + r1)
+    return [l, r, total, length]
+
+while True:
+    try:
+        n, q = map(int, input().split())
+        data = [[1,1,1,1] for _ in range(n)]
+        lst = [1] * n
+        tmp = SegmentTree(data, merge)
+        for _ in range(q):
+            infos = input().split()
+            if infos[0] == '1':
+                pos = int(infos[1]) - 1
+                if lst[pos]:
+                    lst[pos] = 0
+                    tmp.update(pos, [0,0,0,1])
+                else:
+                    lst[pos] = 1
+                    tmp.update(pos, [1,1,1,1])
+            else:
+                pos1 = int(infos[1]) - 1
+                pos2 = int(infos[2]) - 1
+                print(tmp.query(pos1, pos2)[2])
+    except:
+        break
+
+----author:Rainer,2887ms
+a = []
+
+def pushup(k,l,r):
+    global a
+    mid = (l + r) >> 1
+    a[k][0] = max(a[k<<1][0], a[k<<1|1][0], a[k<<1][2] + a[k<<1|1][1])
+    a[k][1] = a[k<<1][1]
+    a[k][2] = a[k<<1|1][2]
+    if a[k<<1][0] == mid - l + 1:
+        a[k][1] = mid - l + 1 + a[k<<1|1][1]
+    if a[k<<1|1][0] == r - mid:
+        a[k][2] = r - mid + a[k<<1][2]
+
+def buildtree(k,l,r):
+    global a
+    if l == r:
+        return
+    mid = (l + r) >> 1
+    buildtree(k<<1, l, mid)
+    buildtree(k<<1|1, mid + 1, r)
+    pushup(k, l, r)
+
+def update(k,l,r,p):
+    global a
+    if l == r:
+        a[k] = [1-a[k][0], 1-a[k][0], 1-a[k][0]]
+        return
+    mid = (l + r) >> 1
+    if p <= mid:
+        update(k<<1, l, mid, p)
+    else:
+        update(k<<1|1, mid + 1, r, p)
+    pushup(k, l, r)
+
+def query(k,l,r,L,R):
+    if L <= l and r <= R:
+        return a[k]
+    mid = (l + r) >> 1
+    if R <= mid:
+        return query(k<<1, l, mid, L, R)
+    if L > mid:
+        return query(k<<1|1, mid + 1, r, L, R)
+    x = query(k<<1, l, mid, L, R)
+    y = query(k<<1|1, mid+1, r, L, R)
+    res = [max(x[0], y[0], x[2] + y[1]), x[1], y[2]]
+    if x[0] == mid - l + 1:
+        res[1] = mid - l + 1 + y[1]
+    if y[0] == r - mid:
+        res[2] = r - mid + x[2]
+    return res
+
+while True:
+    try:
+        line = input()
+    except EOFError:
+        break
+    tmp = [int(x) for x in line.split()]
+    if len(tmp) == 0:
+        continue
+    n, q = tmp[0], tmp[1]
+    #assert(1<=n and n<=50000)
+    #assert(1<=q and q<=50000)
+    a = []
+    for _ in range(n*4+1):
+        a.append([1,1,1])
+    buildtree(1,1,n)
+    for _ in range(q):
+        tmp = [int(x) for x in input().split()]
+        if len(tmp) == 2:
+            update(1,1,n,tmp[1])
+        if len(tmp) == 3:
+            print(query(1,1,n,tmp[1],tmp[2])[0])
+
+
+
+----author:1900012457,3181ms
+tree = [[0, 0, 0] for _ in range(50000 << 2)]
+lst = []
+def pushup(l, r, rt):
+    mid = (l + r) >> 1
+    tree[rt][1] = tree[rt << 1][1]
+    if tree[rt << 1][1] == mid - l + 1:
+        tree[rt][1] += tree[rt << 1 | 1][1]
+    tree[rt][2] = tree[rt << 1 | 1][2]
+    if tree[rt << 1 | 1][2] == r - mid:
+        tree[rt][2] += tree[rt << 1][2]
+    tree[rt][0] = max(tree[rt << 1][2] + tree[rt << 1 | 1][1], tree[rt << 1][0], tree[rt << 1 | 1][0])
+def build(l, r, rt):
+    if l == r:
+        tree[rt] = [1, 1, 1]
+        return
+    mid = (l + r) >> 1
+    build(l, mid, rt << 1)
+    build(mid + 1, r, rt << 1 | 1)
+    pushup(l, r, rt)
+def update(x, l, r, rt):
+    if l == r:
+        if lst[l]:
+            tree[rt] = [0, 0, 0]
+            lst[l] = 0
+        else:
+            tree[rt] = [1, 1, 1]
+            lst[l] = 1
+        return
+    mid = (l + r) >> 1
+    if mid >= x:
+        update(x, l, mid, rt << 1)
+    else:
+        update(x, mid + 1, r, rt << 1 | 1)
+    pushup(l, r, rt)
+def query(x, y, l, r, rt):
+    if x <= l and r <= y:
+        return tree[rt]
+    mid = (l + r) >> 1
+    if y <= mid:
+        return query(x, y, l, mid, rt << 1)
+    if mid + 1 <= x:
+        return query(x, y, mid + 1, r, rt << 1 | 1)
+    now = [0, 0, 0]
+    t1 = query(x, y, l, mid, rt << 1)
+    t2 = query(x, y, mid + 1, r, rt << 1 | 1)
+    now[1] = t1[1]
+    if t1[1] == mid - max(x, l) + 1:
+        now[1] += t2[1]
+    now[2] = t2[2]
+    if t2[2] == min(y, r) - mid:
+        now[2] += t1[2]
+    now[0] = max(t1[2] + t2[1], t1[0], t2[0])
+    return now
+while True:
+    try:
+        n, q = map(int, input().split())
+        lst = [1 for _ in range(n + 1)]
+        build(1, n, 1)
+        for _ in range(q):
+            l = list(map(int, input().split()))
+            if l[0] == 0:
+                print(query(l[1], l[2], 1, n, 1)[0])
+            else:
+                update(l[1], 1, n, 1)
+    except:
+        break
+
+****003: 网线主管
+----author:2100011529(21n2100011529),45ms
+l, n = map(int, input().split())
+lne = []
+for _ in range(l): lne.append(int(100 * float(input())))
+
+
+def chk(x, arr):
+    global n
+    cnt = 0
+    for i in arr:
+        cnt += i // x
+    if cnt >= n:
+        return True
+    return False
+
+
+def bi_srh(mi, mx, arr):
+    global n
+    m = (mi + mx) // 2
+    if mx - mi <= 1:
+        return mi
+    if chk(m, arr):
+        return bi_srh(m, mx, arr)
+    return bi_srh(mi, m, arr)
+
+
+print('%.2f' % (bi_srh(0, sum(lne)//n + 2, lne) / 100))
+
+----author:2100012601张辰芃,46ms
+def is_enough(l):
+    maxline = 0
+    for cable in length:
+        maxline += cable // l
+    return maxline >= require
+
+storage, require = (map(int, input().split()))
+length = [0 for _ in range(storage)]
+for i in range(storage):
+    length[i] = int(float(input()) * 100)
+M = max(length)
+lft, rt = 0, M
+while lft < rt:
+    mid = (lft + rt + 1) // 2
+    if is_enough(mid):
+        lft = mid
+    else:
+        rt = mid - 1
+print('%.2f' %(lft/100))
+
+
+
+----author:1900011411,46ms
+def judge(A, len, K):
+    if len == 0:
+        return False
+    num = 0
+    for x in A:
+        num += x//len
+    return num >= K
+A = []
+N, K = map(int, input().split())
+for i in range(N):
+    A.append(int(float(input())*100))
+L, R = 0, 10000000
+while L <= R:
+    mid = L + (R-L)//2
+    if judge(A, mid, K):
+        L = mid + 1
+    else:
+        R = mid - 1
+        mid -= 1
+if mid < 1:
+    print('0.00')
+else:
+    print("%.2f"%(mid/100))
+
+****004: 奇怪的括号
+----author:2000012282-张一驰,20ms
+def a(s):
+    st = []
+    for i in s:
+        if i in '([':
+            st.append(i)
+        elif i == ')':
+            if not st or st[-1] != '(':
+                return False
+            else:
+                st.pop()
+        elif i == ']':
+            if not st or st[-1] != '[':
+                return False
+            else:
+                st.pop()
+        elif i == '/':
+            if not st or st[-1] in '()[]' or st[-1] == '/*':
+                st.append('/')
+            elif st[-1] == '/**':
+                st.pop()
+            else:
+                return False
+        elif i == '*':
+            if not st or st[-1] not in ('/', '/*'):
+                return False
+            else:
+                st[-1] += '*'
+    return False if st else True
+
+try:
+    while 1:
+        s = input()
+        print(a(s))
+except EOFError:
+    pass
+
+----author:21n2100011345,20ms
+def match(n):
+    stack=[]
+    flag=0
+    for i in range(len(n)):
+        if n[i] in "([" :
+            stack.append(n[i])
+        elif n[i] in "])" :
+            if n[i]=="]" :
+                if len(stack)==0 or stack[-1]!="[" :
+                    return False
+                else:
+                    stack.pop()
+            else:
+                if len(stack)==0 or stack[-1]!="(" :
+                    return False
+                else:
+                    stack.pop()
+        elif n[i]=="/" :
+           if i<=len(n)-2 and i>=1:
+               if n[i+1]!="*" and n[i-1]!="*" :
+                   return False
+           elif i==len(n)-1:
+               if n[i-1]!="*" :
+                   return False
+           elif i==0:
+               if n[i+1]!="*" :
+                   return False
+           if flag==0:
+               flag=1
+           elif flag==-1:
+               if len(stack)==0 or stack[-1]!=0:
+                   return False
+               else:
+                   stack.pop()
+                   flag=0
+           else:
+               return False            
+        elif n[i]=="*" :
+           if i<=len(n)-2 and i>=1:
+               if n[i+1]!="/" and n[i-1]!="/" :
+                   return False
+           elif i==len(n)-1:
+               if n[i-1]!="/" :
+                   return False
+           elif i==0:
+               if n[i+1]!="/" :
+                   return False
+           if flag==1:
+                flag=0
+                stack.append(0)
+           elif flag==0:
+                flag=-1
+           else:
+                return False
+    if len(stack)==0:
+        return True
+    else:
+        return False
+            
+while 1:
+    try: 
+        n=input()
+        print(match(n))
+    except:
+        break
+
+----author:pysh,20ms
+adic = {'(':')','[':']','{':'}'}
+while True:
+    try:
+        a = input()
+        alist = []
+        star = ''
+        ans = 'None'
+        for i in range(len(a)):
+            if a[i] in ['(',')','[',']']:
+                alist.append(a[i])
+            elif a[i] == '*':
+                if star == '':
+                    star = '*'
+                elif star == '/':
+                    star = ''
+                    alist.append('{')
+                elif star == '*':
+                    ans = 'False'
+                    break
+            elif a[i] == '/':
+                if star == '':
+                    star = '/'
+                elif star == '/':
+                    ans = 'False'
+                    break
+                elif star == '*':
+                    star = ''
+                    alist.append('}')
+        if (star != '') or (ans == 'False'):
+            print('False')
+        else:
+            blist = []
+            if alist[0] not in ['(','[','{']:
+                ans = 'False'
+            else:
+                blist.append(alist[0])
+                for i in range(1,len(alist)):
+                    a = alist[i]
+                    if a in ['(','[','{']:
+                        blist.append(a)
+                    else:
+                        if len(blist) == 0:
+                            ans = 'False'
+                            break
+                        b = blist[-1]
+                        if adic[b] == a:
+                            blist.pop()
+                        else:
+                            ans = 'False'
+                            break
+            if (ans == 'False') or (len(blist) > 0):
+                print('False')
+            else:
+                print('True')
+    except:
+        break
+
+
+****005: 移动办公
+----author:2000012282-张一驰,20ms
+t, m = map(int, input().split())
+p = n = 0
+for i in range(t):
+    a, b = map(int, input().split())
+    p, n = max(p + a, n - m + b), max(n + b, p - m + a)
+print(max(p, n))
+
+----author:李天祚 2100012271(李天祚),20ms
+import functools
+s=[]
+T,M=map(int,input().split())
+@functools.lru_cache()
+def searchMax(level,i):
+    tmp=s[level][i]
+    if level==T-1:
+        return tmp
+    L=searchMax(level+1,i)
+    R=searchMax(level+1,1-i)-M
+    return max(L,R)+tmp
+for _ in range(T):
+    s.append(tuple(map(int,input().split())))
+print(max(searchMax(0,0),searchMax(0,1)))
+
+----author:1800012838,20ms
+T, M = list(map(int, input().split()))
+ng, bg = [0]*T, [0]*T
+for i in range(T):
+    ng[i], bg[i] = list(map(int, input().split()))
+nj = [0] * T
+bj = [0] * T
+nj[0] = ng[0]
+bj[0] = bg[0]
+for i in range(T-1):
+    nj[i+1] = max(nj[i], bj[i] - M) + ng[i+1]
+    bj[i+1] = max(bj[i], nj[i] - M) + bg[i+1]
+
+print(max(nj[T-1], bj[T-1]))
+
+****006: A Knight's Journey
+----author:y(1700012755),153ms
+w = ( ( -2, -1 ), ( -2, 1 ), ( -1, -2 ), ( -1, 2 ), ( 1, -2 ), ( 1, 2 ), ( 2, -1 ), ( 2, 1 ) )
+
+ret = []
+
+def dfs( x, y, C ):
+    global a, n, m
+    a[x][y] = 1
+    ret.append( ( x, y ) )
+    #print( ret )
+
+    if C==( n*m ):
+        return True
+
+    for dx, dy in w:
+        px, py = x + dx, y + dy
+        if ( px<0 ) or ( py<0 ) or ( px>=n ) or ( py>=m ) or ( a[px][py] ):
+            continue
+        if dfs( px, py, C + 1 ):
+            return True
+
+    ret.pop()
+    a[x][y] = 0
+
+
+T = int( input() )
+for case in range( T ):
+    print( 'Scenario #' + str( case+1 ) + ':' )
+    m, n = map( int, input().split() )
+    a = [ list( [ 0 ] * m ) for _ in range( n ) ]
+    ret = []
+    dfs( 0, 0, 1 )
+    if not ret:
+        print( 'impossible' )
+    else:
+        print( ''.join( list( map( lambda x: chr( ord( 'A' )+x[0] )+str( x[1]+1 ), ret ) ) ) )
+
+    print()
+
+----author:李天祚 2100012271(李天祚),229ms
+
+move=((-1,-2),(1,-2),(-2,-1),(2,-1),(-2,1),(2,1),(-1,2),(1,2))
+n=int(input())
+fimnalpath=[]
+path=[]
+step=0
+finalstep=0
+p,q=0,0
+flag=False
+def dfs(i,j):
+    global visited,finalpath,path,p,q,flag,step
+    step+=1
+    path.append(chr(j+65))
+    path.append(str(i+1))
+    visited[i][j] = True
+    if step==finalstep:
+        flag=True
+        finalpath=path[:]
+        return
+    for e in move:
+        ii,jj=i+e[0],j+e[1]
+        if ii>=0 and ii<=p-1 and jj>=0 and jj<=q-1 and not visited[ii][jj]:
+            dfs(ii,jj)
+            if flag==True:
+                return
+    visited[i][j]=False
+    path.pop()
+    path.pop()
+    step-=1
+for i in range(1,n+1):
+    p,q=map(int,input().split())
+    finalstep,step,flag=p*q,0,False
+    visited=[[False for _ in range(q)]for _ in range(p)]
+    path,finalpath=[],[]
+    dfs(0,0)
+    print('Scenario #{}:'.format(i))
+    if flag==False:
+        print('impossible')
+    else:
+        print(''.join(finalpath))
+    print()
+
+----author:2100012601张辰芃,230ms
+def helper_iter(x, y):
+    yield (x-2,y-1)
+    yield (x-2,y+1)
+    yield (x-1,y-2)
+    yield (x-1,y+2)
+    yield (x+1,y-2)
+    yield (x+1,y+2)
+    yield (x+2,y-1)
+    yield (x+2,y+1)
+
+def custom_print(route):
+    str_route = ''
+    for place in route:
+        str_route = str_route + chr(place[0] + 65) + str(place[1] + 1)
+    print(str_route)
+    return
+
+def dfs(x, y):
+    global route, flag
+    board[y][x] = True
+    route.append((x, y))
+    if len(route) == p * q:
+        flag = True
+        custom_print(route)
+        return True
+    for place in helper_iter(x, y):
+        if (place[0] >= 0 and place[0] < q\
+            and place[1] >= 0 and place[1] < p\
+            and board[place[1]][place[0]] == False):
+            if (dfs(place[0], place[1])) == True:
+                return True
+            board[place[1]][place[0]] = False
+            route.pop()
+
+n = int(input())
+for times in range(n):
+    flag = False
+    p, q = (map(int, input().split()))
+    board = [[False for _ in range(q)] for _ in range(p)]
+    route = []
+    print('Scenario #{0}:'.format(times+1))
+    dfs(0,0)
+    if flag == False:
+        print('impossible')
+    print()
+
+
+****007: 森林的带度数层次序列存储
+----author:21n2100011499,20ms
+n=int(input())
+ans=[]
+def findans(x):
+    for next in tree[x]:
+        findans(next)
+    ans.append(x)
+for i in range(n):
+    s=input().split()
+    l=0;r=0
+    tree={}
+    while(l<len(s)-1):
+        cnt=int(s[l+1])
+        leaves=[]
+        for i in range(1,cnt+1):
+            r+=2
+            leaves.append(s[r])
+        tree[s[l]]=leaves
+        l+=2
+    findans(s[0])
+print(' '.join(ans))
+
+
+
+----author:蔡坤雨2100011621,21ms
+trees=int(input())
+forest=[]
+
+
+def bdtree(stri):
+	i=1
+	nodes=[]
+	descs=[]
+	while i<len(stri):
+		nodes.append([[],stri[i-1]])
+		descs.append(int(stri[i]))
+		i+=2
+	index=1
+	for i in range(len(descs)):
+		for j in range(descs[i]):
+			nodes[i][0].append(nodes[index])
+			index+=1
+	return nodes[0]
+def traversal(trees):
+	for i in trees:
+		if type(i)==list:
+			traversal(i)
+		else:
+			print(i,end=' ')
+			
+for i in range(trees):
+	line=input().split()
+	forest.append(bdtree(line))
+for j in forest:
+	traversal(j)
+
+----author:1900015431(YawnSean),21ms
+from collections import deque
+class Tree:
+    def __init__(self, val):
+        self.val = val
+        self.children = deque([])
+    def traversal(self):
+        res = []
+        for x in self.children:
+            if x:
+                res += x.traversal()
+        res.append(self.val)
+        return res
+
+n = int(input())
+trees = []
+for _ in range(n):
+    infos = input().split()
+    tree = Tree(infos[0])
+    queue = deque([tree])
+    cnt_lst = deque([int(infos[1])])
+    idx = 1
+    while queue:
+        node = queue.popleft()
+        cnt = cnt_lst.popleft()
+        for _  in range(cnt):
+            node.children.append(Tree(infos[2*idx]))
+            queue.append(node.children[-1])
+            cnt_lst.append(int(infos[2*idx+1]))
+            idx += 1
+    trees.append(tree)
+res = trees.pop()
+tmp = res
+while trees:
+    tmp.children.appendleft(trees.pop())
+    tmp = tmp.children[0]
+print(*res.traversal())
+
+****008: 拯救行动
+----author:应骏达(C_2100010800_应骏达),1492ms
+import collections
+
+n=int(input())
+for kw in range(n):
+    n,m=map(int,input().split())
+    g=[[] for j in range(n)]
+    flag=0
+    
+    for j in range(n):
+        g[j]=list(input())
+    for i in range(n):
+        for j in range(m):
+            if g[i][j]=="r":
+                x,y=i,j
+                flag+=1
+                break
+        if flag:
+            break
+    
+    visited=[[0 for i in range(m)] for j in range(n)]
+    visited[x][y]=1
+    dq=collections.deque()
+    dq.append([x,y,0,0])
+    flag=0
+    
+    while len(dq):
+        a=dq[0]
+        dq.popleft()
+        x,y,k,t=a[0],a[1],a[2],a[3]
+        
+        if k==1:
+            dq.append([x,y,0,t+1])
+        else:
+            if x>0 and visited[x-1][y]==0:
+                d=g[x-1][y]
+                visited[x-1][y]=1
+                if d=="a":
+                    flag+=1
+                    print(t+1)
+                    break
+                elif d=="@":
+                    dq.append([x-1,y,0,t+1])
+                elif d=="x":
+                    dq.append([x-1,y,1,t+1])
+                    
+            if y>0 and visited[x][y-1]==0:
+                d=g[x][y-1]
+                visited[x][y-1]=1
+                if d=="a":
+                    flag+=1
+                    print(t+1)
+                    break
+                elif d=="@":
+                    dq.append([x,y-1,0,t+1])
+                elif d=="x":
+                    dq.append([x,y-1,1,t+1])
+                    
+            if x<n-1 and visited[x+1][y]==0:
+                d=g[x+1][y]
+                visited[x+1][y]=1
+                if d=="a":
+                    flag+=1
+                    print(t+1)
+                    break
+                elif d=="@":
+                    dq.append([x+1,y,0,t+1])
+                elif d=="x":
+                    dq.append([x+1,y,1,t+1])
+                    
+            if y<m-1 and visited[x][y+1]==0:
+                d=g[x][y+1]
+                visited[x][y+1]=1
+                if d=="a":
+                    flag+=1
+                    print(t+1)
+                    break
+                elif d=="@":
+                    dq.append([x,y+1,0,t+1])
+                elif d=="x":
+                    dq.append([x,y+1,1,t+1])
+    if flag==0:
+        print("Impossible")
+
+----author:21n2100011345,1609ms
+dir=[[0,1],[0,-1],[1,0],[-1,0]]
+def bfs(x,y,t):
+    while len(queue)>0:
+        x,y,t=queue.pop(0)
+        if way[x][y]=="x" :
+            way[x][y]="@"
+            queue.append((x,y,t+1))
+            visited[x][y]=1
+            continue
+        if way[x][y]=="a" :
+            return t
+        for i in range(4):
+            u=x+dir[i][0]
+            v=y+dir[i][1]
+            if way[u][v]!="#" and visited[u][v]==0 :
+                queue.append((u,v,t+1))
+                visited[u][v]=1
+    if len(queue)==0:
+        return "Impossible"
+s=int(input())
+for _ in range(s):
+    n,m=map(int,input().split())
+    way=[["#"]*(m+2)]
+    for i in range(n):
+        way.append(["#"]+" ".join(input()).split()+["#"])
+    way.append(["#"]*(m+2))
+    for i in range(1,n+1):
+        for j in range(1,m+1):
+            if way[i][j]=="r" :
+                x,y=i,j
+                break
+    queue=[(x,y,0)]
+    visited=[[0]*(m+2) for _ in range(n+2)]
+    print(bfs(x,y,0))
+
+----author:2100012601张辰芃,1762ms
+import collections
+
+def bfs(start, end, ground):
+    global m, n
+    visited = set()
+    queue = collections.deque()
+    visited.add(start)
+    queue.append((start[0], start[1], 0))
+    while queue:
+        curr = queue.popleft()
+        if ground[curr[0]][curr[1]] == 'a':#found princess
+            return curr[2]
+        elif ground[curr[0]][curr[1]] == 'x':#kill guard first
+            ground[curr[0]][curr[1]] = '@'
+            queue.append((curr[0], curr[1], curr[2] + 1))
+            continue
+
+        if curr[0] > 0 and ground[curr[0] - 1][curr[1]] != '#'\
+           and (curr[0] - 1, curr[1]) not in visited:#going up
+            visited.add((curr[0] - 1, curr[1]))
+            queue.append((curr[0] - 1, curr[1], curr[2] + 1))
+
+        if curr[0] < n - 1 and ground[curr[0] + 1][curr[1]] != '#'\
+           and (curr[0] + 1, curr[1]) not in visited:#going down
+            visited.add((curr[0] + 1, curr[1]))
+            queue.append((curr[0] + 1, curr[1], curr[2] + 1))
+
+        if curr[1] > 0 and ground[curr[0]][curr[1] - 1] != '#'\
+           and (curr[0], curr[1] - 1) not in visited:#going left
+            visited.add((curr[0], curr[1] - 1))
+            queue.append((curr[0], curr[1] - 1, curr[2] + 1))
+
+        if curr[1] < m - 1 and ground[curr[0]][curr[1] + 1] != '#'\
+           and (curr[0], curr[1] + 1) not in visited:#going right
+            visited.add((curr[0], curr[1] + 1))
+            queue.append((curr[0], curr[1] + 1, curr[2] + 1))
+    return 'Impossible'
+
+
+a = int(input())
+for _ in range(a):
+    ground = []
+    n, m = (map(int, input().split()))
+    for line in range(n):
+        ground.append(list(input()))
+        for point in range(m):
+            t = ground[line][point][0]
+            if t == "a":
+                princess = (line, point)
+            elif t == "r":
+                knight = (line, point)
+    print(bfs(knight, princess, ground))
+
+****009: 薛定谔的二叉树
+----author:(bxmgxt),20ms
+while True:
+    try:
+        a,b=input().split()
+        def count(x,y):
+            if len(x)!=len(y):
+                return 0
+            elif len(x)==0:
+                return 1
+            elif len(x)==1:
+                if x==y:
+                    return 1
+                else:
+                    return 0                
+            else:
+                n=len(x)
+                c=x[0:1]
+                d=y[n-1:n]
+                if c!=d:
+                    return 0
+                else:
+                    x1={c}
+                    x2={c}
+                    z=1
+                    suma=0
+                    for i in range(1,n):
+                        if x[i:i+1] in x1 or y[i-1:i] in x2:
+                            return 0
+                        x1.add(x[i:i+1])
+                        x2.add(y[i-1:i])
+                        
+                        if x1==x2:
+                            if i<n-1:
+                                suma+=count(x[z:i+1],y[z-1:i])*count(x[i+1:n],y[i:n-1])
+                            else:
+                                
+                                suma+=2*count(x[z:i+1],y[z-1:i])*count(x[i+1:n],y[i:n-1])
+                            
+                            z=i
+                        
+                    return suma
+        print(count(a,b))
+                            
+                            
+                    
+    except EOFError:
+        break
+
+
+----author:1900015431(YawnSean),20ms
+from collections import defaultdict
+while True:
+    try:
+        x, y = input().split()
+        if x[0] != y[-1] or len(x) != len(y) or set(x) != set(y) or len(set(x)) != len(x):
+            print(0)
+        else:
+            d = {}
+            def getRes(l1, l2, r1, r2):
+                if (l1, l2, r1, r2) in d:
+                    return d[(l1, l2, r1, r2)]
+                if l1 > l2: return 1
+                tmp_d1 = defaultdict(int)
+                tmp_d2 = defaultdict(int)
+                ans = 0
+                if x[l1] == y[r2]:
+                    ans += 2 * getRes(l1+1, l2, r1, r2-1)
+                for i in range(l2-l1):
+                    tmp_d1[x[l1+i]] += 1
+                    tmp_d2[y[r1+i]] += 1
+                    if tmp_d1 == tmp_d2 and x[l1] == y[r1+i] and x[l1+i+1] == y[r2]:
+                        ans += getRes(l1+1, l1+i, r1, r1+i-1)* getRes(l1+i+2, l2, r1+i+1, r2-1)
+                d[(l1, l2, r1, r2)] = ans
+                return ans
+            print(getRes(1, len(x)-1, 0, len(y)-2))
+    except:
+        break
+
+----author:金晟治 2100010788(jszjinshengzhi),22ms
+def dfs(la, ra, lb, rb):
+	global ans
+	if a[la] != b[rb]:
+		ans = 0
+		return
+	if la == ra: return
+	if a[la+1] == b[rb-1]:
+		ans *= 2
+		dfs(la+1, ra, lb, rb-1)
+	else:
+		x = pos_b[ord(a[la+1]) - ord("A")]
+		if x < lb or x >= rb:
+			ans = 0
+			return
+		dfs(la+1, la+x-lb+1, lb, x)
+		dfs(la+x-lb+2, ra, x+1, rb-1)
+
+while True:
+	try:
+		s = input().split()
+	except:
+		break
+	a, b = s[0], s[1]
+	if len(a) != len(b):
+		print(0)
+		continue
+	n = len(a)
+	pos_a = [-1 for _ in range(26)]
+	pos_b = [-1 for _ in range(26)]
+	flag = False
+	for i in range(n):
+		if pos_a[ord(a[i]) - ord("A")] != -1 or pos_b[ord(b[i]) - ord("A")] != -1:
+			print(0)
+			flag = True
+			break
+		pos_a[ord(a[i]) - ord("A")] = i
+		pos_b[ord(b[i]) - ord("A")] = i
+	if flag: continue
+	for i in range(26):
+		if (pos_a[i] == -1 and pos_b[i] != -1) or (pos_a[i] != -1 and pos_b[i] == -1):
+			print(0)
+			flag = True
+			break
+	if flag: continue
+	ans = 1
+	dfs(0, n-1, 0, n-1)
+	print(ans)
+
+****010: 最小奖金方案
+----author:2100012601张辰芃,25ms
+import collections
+
+def topo_sort(chart, inval):
+    result = []
+    queue = collections.deque()
+    for i in range(n):
+        if inval[i] == 0:
+            queue.append(i)
+    while queue:
+        curr = queue.popleft()
+        result.append(curr)
+        for side in chart[curr]:
+            inval[side] -= 1
+            if inval[side] == 0:
+                queue.append(side)
+    return result
+
+def min_money(schart, topo):
+    least = [0 for _ in range(n)]
+    for node in topo:
+        for side in schart[node]:
+            least[side] = max(least[side], least[node] + 1)
+    return least
+
+n, m = (map(int, input().split()))
+schart = [[] for _ in range(n)]
+echart = [[] for _ in range(n)]
+dist = [0 for _ in range(n)]
+for _ in range(m):
+    win, lose = (map(int, input().split()))
+    schart[lose].append(win)
+    echart[win].append(lose)
+inval = [len(sidelist) for sidelist in echart]
+topo = topo_sort(schart, inval)
+print(100 * n + sum(min_money(schart, topo)))
+
+
+----author:曹仁君(1900012451),25ms
+try:
+    n,m=map(int,input().split())
+    money_n=[0 for i in range(n)]
+    judge_n=[0 for i in range(n)]
+
+    win_rela={}
+    for i in range(m):
+        x,y=map(int,input().split())
+        money_n[x]=1
+        judge_n[x]=1#表示这个是需要进行计算的
+        #将值设为1仅仅代表着，有打败，余下值为0的就没打败
+        if x in win_rela:
+            win_rela[x].append(y)
+        else:
+            win_rela[x]=[y]
+    #构建起字典，也即一个图
+    def get_money(num):
+        #函数返回值为num组的最少的钱
+        global money_n,judge_n,win_rela
+        if money_n[num]==0:
+            return 0
+        elif money_n[num]!=0 and judge_n[num]==0:
+            return money_n[num]       
+        temp=[]
+        for i in win_rela[num]:
+            temp.append(get_money(i))
+        judge_n[num]=0
+        money_n[num]=max(temp)+1
+        return  money_n[num]
+
+
+    for i in range(n):
+        if money_n[i]==0:
+            continue
+        elif money_n[i]!=0 and judge_n[i]==0:
+            continue
+        elif money_n[i]!=0 and judge_n[i]==1:
+            get_money(i)
+    
+    print(100*n+sum(money_n))
+
+
+
+
+except EOFError:
+    pass
+
+----author:李天祚 2100012271(李天祚),26ms
+#Graph_BF_minReward
+def BF(G,n,reward,inDegree):
+    import collections
+    q=collections.deque()
+    for i in range(n):
+        if inDegree[i]==0:
+            q.append(i)
+    while q:
+        i=q.pop()
+        inDegree[i]=float('inf')
+        for j in G[i]:
+            reward[j]=max(reward[j],reward[i]+1)
+            inDegree[j]-=1
+            if inDegree[j]==0:
+                q.append(j)
+n,m=map(int,input().split())
+reward=[100 for _ in range(n)]
+inDegree=[0 for _ in range(n)]
+G=[[]for _ in range(n)]
+for i in range(m):
+    a,b=map(int,input().split())
+    G[b].append(a)
+    inDegree[a]+=1
+BF(G,n,reward,inDegree)
+print(sum(reward))
+
+****011: 皮卡丘的冒险
+----author:Rainer,39ms
+from heapq import *
+
+def dijkstra(st):
+    pq = [(st,0)]
+    heapify(pq)
+    dis[st] = 0
+    while len(pq) > 0:
+        d, u = heappop(pq)
+        if d > dis[u]:
+            continue
+        for v, w in e[u]:
+            if d + w < dis[v]:
+                dis[v] = d + w
+                heappush(pq, (dis[v],v) )
+
+n, m = [int(x) for x in input().split()]
+fight, e, dis, inf = [0, 0], [], [], 1e30
+for _ in range(n):
+    fight.append(int(input()))
+for _ in range(n+3):
+    e.append([])
+    dis.append(inf)
+for _ in range(m):
+    u, v, w = [int(x) for x in input().split()]
+    e[u].append( (v,w+fight[v]) )
+    e[v].append( (u,w+fight[u]) )
+#print(e)
+
+dijkstra(0)
+print(dis[1])
+
+
+----author:2000011710_姜天行,41ms
+from heapq import *
+inf = float('inf')
+n, m = map(int, input().split())
+time = [0] * (n + 2)
+g = [[] for i in range(n + 2)]
+for i in range(n):
+	time[i + 2] = int(input())
+for i in range(m):
+	v1, v2, w = map(int, input().split())
+	g[v1].append((v2, w))
+	g[v2].append((v1, w))
+dist = [inf] * (n + 2)
+heap = [(0, 1)]
+s = set()
+while True:
+	d, v1 = heappop(heap)
+	if v1 in s:
+		continue
+	dist[v1] = d
+	if v1 == 0:
+		break
+	s.add(v1)
+	for v2, w in g[v1]:
+		if v2 not in s:
+			dist[v2] = min(dist[v2], dist[v1] + w + time[v2])
+			heappush(heap, (dist[v2], v2))
+print(dist[0])
+
+----author:1900015431(YawnSean),41ms
+from collections import defaultdict
+import heapq
+n, m = map(int, input().split())
+d_time = defaultdict(int)
+for i in range(n):
+    d_time[i+2] = int(input())
+d_path = defaultdict(dict)
+for _ in range(m):
+    x, y, d = map(int, input().split())
+    if y not in d_path[x] or d_path[x][y] > d_time[y] + d:
+        d_path[x][y] = d_time[y] + d
+    if x not in d_path[y] or d_path[y][x] > d_time[x] + d:
+        d_path[y][x] = d_time[x] + d
+res = [float('inf')] * (n+2)
+to_visit = [(0, 0)]
+while to_visit:
+    dist, pt = heapq.heappop(to_visit)
+    if pt == 1:
+        print(dist)
+        break
+    for new_pt in d_path[pt]:
+        new_dist = dist + d_path[pt][new_pt]
+        if new_dist < res[new_pt]:
+            heapq.heappush(to_visit, (new_dist, new_pt))
+            res[new_pt] = new_dist
+
+****012: 拉帮结派
+----author:2000013128,333ms
+li=input().split()
+n=int(li[0])
+m=int(li[1])
+parent=[i for i in range(n+1)]
+def getp(i):
+    if parent[i]!=i:
+        parent[i]=getp(parent[i])
+    return parent[i]
+for i in range(m):
+    li=input().split()
+    a=int(li[0])
+    b=int(li[1])
+    parent[getp(a)]=getp(b)
+res=0
+for i in range(1,n+1):
+    if parent[i]==i:
+        res+=1
+print(res)
+
+
+----author:1524(21n2100011524),336ms
+n,m = map(int,input().split())
+parent = list(range(n+1))
+s = n
+def getroot(a):
+    global parent
+    if parent[a] == a:
+        return a
+    parent[a] = getroot(parent[a])
+    return parent[a]
+def merge(a,b):
+    global parent,s
+    x = getroot(b)
+    y = getroot(a)
+    if x != y:
+        parent[x] = y
+        s -= 1
+for i in range(m):
+    a,b = map(int,input().split())
+    merge(a,b)
+print(s)
+
+----author:2100010773,339ms
+n,m=map(int,input().split())
+MAX = 100000
+parent = [ i for i in range(MAX+10) ]
+num=n
+def GetRoot(a):
+    if parent[a]!= a:
+        parent[a] = GetRoot(parent[a])
+    return parent[a] 
+def Merge(a,b):
+    global num
+    p1 = GetRoot(a)
+    p2 = GetRoot(b)
+    if p1 == p2:
+        return 
+    parent[p2] = p1
+    num-=1
+for i in range(m):
+    n,m =map(int,input().split())
+    Merge(n,m)
+print(num)
+

@@ -1,0 +1,224 @@
+****001: 红与黑
+----author:2100011511XSY,27ms
+import collections
+w = h = 0
+res = 1
+avi = collections.deque()
+
+
+def search(p: list, x, y):
+    global w, h, res, avi
+    if y + 1 < w and p[x][y + 1] == 1:
+        avi.append((x, y + 1))
+        p[x][y + 1] = 0
+        res += 1
+    if y - 1 >= 0 and p[x][y - 1] == 1:
+        avi.append((x, y - 1))
+        p[x][y - 1] = 0
+        res += 1
+    if x + 1 < h and p[x + 1][y] == 1:
+        avi.append((x + 1, y))
+        p[x + 1][y] = 0
+        res += 1
+    if x - 1 >= 0 and p[x - 1][y] == 1:
+        avi.append((x - 1, y))
+        p[x - 1][y] = 0
+        res += 1
+    if avi:
+        a = avi.popleft()
+        search(p, a[0], a[1])
+    return
+
+
+while True:
+    tem = input()
+    if tem == "0 0":
+        break
+    w, h = int(tem.split()[0]), int(tem.split()[1])
+    pos = (0, 0)
+    Map = [[]for i in range(h)]
+    for x in range(h):
+        tem = input()
+        for y in range(w):
+            if tem[y] == '.':
+                Map[x].append(1)
+            elif tem[y] == '#':
+                Map[x].append(-1)
+            else:
+                pos = (x, y)
+                Map[x].append(0)
+    search(Map, pos[0], pos[1])
+    print(res)
+    res = 1
+
+----author:Derrick(1900011708),27ms
+def dfs(mat, i, j):
+    global visited
+    visited[i][j] = True
+    count = 1
+    if i<=len(mat)-2 and mat[i+1][j]=='.' and (not visited[i+1][j]):
+        count += dfs(mat, i+1, j)
+    if i>=1 and mat[i-1][j]=='.' and (not visited[i-1][j]):
+        count += dfs(mat, i-1, j)
+    if j<=len(mat[0])-2 and mat[i][j+1]=='.' and (not visited[i][j+1]):
+        count += dfs(mat, i, j+1)
+    if j>=1 and mat[i][j-1]=='.' and (not visited[i][j-1]):
+        count += dfs(mat, i, j-1)
+    return count
+while True:
+    [w, h] = list(map(int, input().split()))
+    if w==0:
+        break
+    mat, visited = [], [[False for i in range(w)] for j in range(h)]
+    for i in range(h):
+        mat.append(input())
+        if '@' in mat[-1]:
+            init_i = i
+            init_j = mat[-1].index('@')
+    print(dfs(mat, init_i, init_j))
+
+----author:BillLiu,27ms
+room = []
+count = 0 
+def dfs(i, k):
+    global count
+    if room[i][k] == '*' or room[i][k] == '#':
+        return
+    count += 1
+    room[i][k] = '*'
+    if i < m - 1:
+        dfs(i + 1, k)
+    if i > 0:
+        dfs(i - 1, k)
+    if k > 0:
+        dfs(i, k - 1)
+    if k < n - 1:
+        dfs(i, k + 1)
+
+while True:
+    n, m = map(int, input().split())
+    if m == 0 and n == 0:
+        break
+
+    count = 0
+    room = []
+    x, y = -1, -1
+    for _ in range(m):
+        room.append(list(input()))
+        
+    #print(room)
+    for i in range(m) :
+        for j in range(n) :
+            if room[i][j] == '@':
+                x, y = i, j
+                break
+        if x != -1:
+            break
+    dfs(x, y)
+    print(count)
+    
+
+
+
+****002: 跳房子
+----author:Derrick(1900011708),24ms
+import collections
+while True:
+    [n, m] = list(map(int, input().split()))
+    if n==0:
+        break
+    q, visited = collections.deque(), [False]*10000
+    q.append([n,''])
+    visited[n]=True
+    while len(q)>0:
+        s = q.popleft()
+        if s[0]==m:
+            print(len(s[1]))
+            print(s[1])
+            break
+        tmp1, tmp2 = 3*s[0], s[0]//2
+        if tmp1<10000 and not visited[tmp1]:
+            q.append([tmp1, s[1]+'H'])
+            visited[tmp1]=True
+        if tmp2>0 and not visited[tmp2]:
+            q.append([tmp2, s[1]+'O'])
+            visited[tmp2]=True
+
+----author:徐浩棋_2100012138,26ms
+import collections
+class step:
+    def __init__(self,x,steps,path):
+        self.x = x
+        self.steps = steps
+        self.path=path
+def f(m,n):
+    global q,visited,result,steps
+    q.append(step(m,0,[]))
+    visited[m]=True
+    while len(q)>0:
+        s=q.popleft()
+        if s.x==n:
+            result.append(''.join(s.path))
+            steps=s.steps
+        if s.steps>steps:
+            break    
+        else:
+            if s.x*3<10000 and (not visited[s.x*3]):
+                q.append(step(s.x*3,s.steps+1,s.path+['H']))
+                if s.x*3!=n:
+                    visited[s.x*3]=True
+            if not visited[s.x//2]:
+                q.append(step(s.x//2,s.steps+1,s.path+['O']))
+                if s.x//2!=n:
+                    visited[s.x//2]=True
+
+
+alist=[]
+while 1:
+    m,n=map(int,input().split()) 
+    if m==0 and n==0:
+        break
+    else:
+        alist.append((m,n))
+for j in alist:
+    a,b=j[0],j[1]
+    q=collections.deque()
+    visited=[False for i in range(10000)]
+    result=[]
+    steps=float('inf')
+    f(a,b)
+    result.sort()
+    print(len(result[0]))
+    print(result[0])
+
+----author:(bxmgxt),32ms
+import queue
+def H(n):
+    return 3*n
+def O(n):
+    return n//2
+x=10000
+while True:
+    n,m=list(map(int,input().split()))
+    if n==0 and m==0:
+        break
+    visited=[False]*x
+    q=queue.Queue()
+    condition=('',n,0)
+    q.put(condition)
+    visited[n]=True
+    while True:
+        aaaa=q.get()
+        if aaaa[1]==m:
+            break
+        if H(aaaa[1])<x and not visited[H(aaaa[1])]:
+            
+            q.put((aaaa[0]+'H',H(aaaa[1]),aaaa[2]+1))
+            visited[H(aaaa[1])]=True
+        if O(aaaa[1])>0 and not visited[O(aaaa[1])]:
+            q.put((aaaa[0]+'O',O(aaaa[1]),aaaa[2]+1))
+            visited[O(aaaa[1])]=True
+    print(aaaa[2])
+    print(aaaa[0])
+
+

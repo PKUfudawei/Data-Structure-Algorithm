@@ -1,0 +1,174 @@
+****001: 火星大工程
+----author:2000011710_姜天行,710B
+n, m = map(int, input().split())
+g1, g2 = [[] for i in range(n + 1)], [[] for j in range(n + 1)]
+ind = [0] * (n + 1)
+for i in range(m):
+	a, b, c = map(int, input().split())
+	ind[b] += 1
+	g1[a].append((b, c))
+	g2[b].append((a, c))
+q = [i for i in range(1, n + 1) if ind[i] == 0]
+ts = []
+while q:
+	v1 = q.pop(0)
+	ts.append(v1)
+	for v2, w in g1[v1]:
+		ind[v2] -= 1
+		if ind[v2] == 0:
+			q.append(v2)
+et = [0] * (n + 1)
+for v1 in ts:
+	for v2, w in g1[v1]:
+		et[v2] = max(et[v2], et[v1] + w)
+time = max(et[1:])
+print(time)
+lt = [time] * (n + 1)
+for v2 in reversed(ts):
+	for v1, w in g2[v2]:
+		lt[v1] = min(lt[v1], lt[v2] - w)
+for v1 in range(n + 1):
+	for v2, w in g1[v1]:
+		if lt[v2] - et[v1] == w:
+			print(v1, v2)
+
+----author:叶飞越_2100010785,738B
+import collections
+n,m=map(int,input().split())
+e1=[[] for i in range(n+1)]
+e2=[[] for i in range(n+1)]
+v1=[0]*(n+1)
+v2=[0]*(n+1)
+d1=[0]*(n+1)
+d2=[0]*(n+1)
+a=[0]*(n+1)
+def topo(e,d,v):
+	q=collections.deque()
+	for i in range(1,n+1):
+		if v[i]==0:
+			q.append(i)
+	while len(q):
+		x=q.popleft()
+		for (y,z) in e[x]:
+			v[y]-=1
+			d[y]=max(d[y],d[x]+z)
+			if v[y]==0:
+				q.append(y)
+for i in range(m):
+	u,v,w=map(int,input().split())
+	e1[u].append((v,w))
+	e2[v].append((u,w))
+	v1[v]+=1
+	v2[u]+=1
+topo(e1,d1,v1)
+topo(e2,d2,v2)
+maxn=0
+for i in range(1,n+1):
+	maxn=max(maxn,d1[i])
+for i in range(1,n+1):
+	if d1[i]+d2[i]==maxn:
+		a[i]=1
+print(maxn)
+for x in range(1,n+1):
+	for (y,z) in e1[x]:
+		if a[x] and a[y] and d1[x]+z==d1[y]:
+			print(x,y)
+
+----author:2000012282-张一驰,758B
+import queue
+n, m = map(int, input().split())
+q, seq, g, indeg, eart = queue.Queue(), [], [{} for i in range(n + 1)], [0] * (n + 1), [0] * (n + 1)
+for i in range(m):
+    a, b, c = map(int, input().split())
+    g[a][b] = c
+    indeg[b] += 1
+for i in range(1, n + 1):
+    if not indeg[i]:
+        q.put(i)
+while not q.empty():
+    k = q.get()
+    seq.append(k)
+    for i in g[k]:
+        eart[i] = max(eart[i], eart[k] + g[k][i])
+        indeg[i] -= 1        
+        if indeg[i] == 0:
+            q.put(i)
+t = max(eart)
+print(t)
+latt = [t] * (n + 1)
+for i in seq[::-1]:
+    for j in g[i].keys():
+        latt[i] = min(latt[i], latt[j] - g[i][j])
+for i in range(n + 1):
+    for j in g[i].keys():
+        if latt[j] - eart[i] == g[i][j]:
+            print(i, j)
+
+****002: 兔子与星空
+----author:叶飞越_2100010785,357B
+n=int(input())
+e=[]
+fa=[i for i in range(n)]
+def getr(x):
+	if fa[x]!=x:
+		fa[x]=getr(fa[x])
+	return fa[x]
+for i in range(n-1):
+	s=input().split()
+	for j in range(1,int(s[1])+1):
+		e.append((i,ord(s[2*j])-65,int(s[2*j+1])))
+e.sort(key=lambda x:x[2])
+ans=0
+for i in range(len(e)):
+	a,b=getr(e[i][0]),getr(e[i][1])
+	if a!=b:
+		ans+=e[i][2]
+		fa[b]=a
+print(ans)
+
+----author:2000011710_姜天行,413B
+def gr(a):
+	if p[a] != a:
+		p[a] = gr(p[a])
+	return p[a]
+n = int(input())
+edge = []
+p = [i for i in range(n)]
+for v1 in range(n - 1):
+	s = iter(input().split()[1:])
+	for j in range(int(next(s))):
+		v2, w = ord(next(s)) - 65, int(next(s))
+		edge.append((w, v1, v2))
+edge.sort()
+x, c = 0, 0
+for w, v1, v2 in edge:
+	if gr(v1) == gr(v2):
+		continue
+	p[gr(v1)] = gr(v2)
+	x += w
+	c += 1
+	if c == n - 1:
+		break
+print(x)
+
+----author:2000012282-张一驰,469B
+n = int(input())
+l, res, vis = [], 0, 1
+for i in range(n - 1):
+    s = input().split()
+    for j in range(int(s[1])):
+        l.append([ord(s[0]) - 65, ord(s[2 * j + 2]) - 65, int(s[2 * j + 3])])
+l.sort(key=lambda x: -x[2])
+m = [i for i in range(n)]
+def root(x):
+    if m[x] != x:
+        m[x] = root(m[x])
+    return m[x]
+while vis < n:
+    a = l.pop()
+    if root(a[0]) != root(a[1]):
+        m[root(a[1])] = root(a[0])
+        vis += 1
+        res += a[2]
+print(res)
+

@@ -1,0 +1,156 @@
+****001: 红与黑
+----author:2000011710_姜天行,504B
+moves = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+while True:
+	m, n = map(int, input().split())
+	if m == 0:
+		break
+	g = []
+	for i in range(n):
+		s = input()
+		g.append([0 if j == '#' else 1 for j in s])
+		if '@' in s:
+			a = (i, s.index('@'))
+	q = [a]
+	x = 0
+	while q:
+		pos = q.pop()
+		if g[pos[0]][pos[1]]:
+			x += 1
+			g[pos[0]][pos[1]] = 0
+			for move in moves:
+				nbr = (pos[0] + move[0], pos[1] + move[1])
+				if 0 <= nbr[0] < n and 0 <= nbr[1] < m and g[nbr[0]][nbr[1]]:
+					q.insert(0, nbr)
+	print(x)
+
+----author:UNeP,517B
+listx=[[1,0],[-1,0],[0,1],[0,-1]]
+def zou(x,y):
+    for dx,dy in listx:
+        if list1[x+dx][y+dy]=='.' and (x+dx,y+dy) not in set1:
+            set1.add((x+dx,y+dy))
+            zou(x+dx,y+dy)
+        
+while True:
+    l,r=map(int,input().split())
+    list1=['#'*(l+2)]
+    if l==0:
+        break
+    for i in range(r):
+        s='#'+input()+'#'
+        list1.append([x for x in s])
+        if '@' in s:
+            x,y=i+1,s.find('@')
+
+    list1.append('#'*(l+2))
+    set1=set()
+    zou(x,y)
+    print(len(set1)+1)
+
+----author:2000011869,536B
+def step(i, j):
+	global floor
+	if i < 0 or i >= h or j < 0 or j >= w: #越界不能走
+		return 0
+	if floor[i][j] == '#': #红色不能走
+		return 0
+	#可以走
+	floor[i][j] = '#'
+	return step(i+1, j) \
+		+ step(i-1, j) \
+		+ step(i, j+1) \
+		+ step(i, j-1) + 1
+	
+while True:
+	w, h = input().split()
+	w, h = int(w), int(h)
+	if w == 0:
+		break
+	floor = []
+	for i in range(h):
+		floor.append(list(input()))
+	
+	for i in range(h):
+		for j in range(w):
+			if floor[i][j]=='@':
+				i_0, j_0 = i, j
+				break
+	res = step(i_0, j_0)
+	print(res)
+
+****002: 跳房子
+----author:2000011710_姜天行,380B
+while True:
+	n, m = map(int, input().split())
+	if n == 0:
+		break
+	q = [n]
+	d = {n: ''}
+	flag = 0
+	while q:
+		x = q.pop()
+		moves = d[x]
+		for i, y in enumerate((x * 3, x // 2)):
+			if y not in d:
+				move = 'O' if i else 'H'
+				if y == m:
+					print(len(moves) + 1)
+					print(moves + move)
+					flag = 1
+					break
+				d[y] = moves + move
+				q.insert(0, y)
+		if flag:
+			break
+
+----author:2000012282-张一驰,405B
+def jump(n, m):
+    for i in range(2, 2 << 25):
+        op = bin(i)[3:].replace('0', 'H').replace('1', 'O')
+        a = n
+        for j in op:
+            if j == 'H':
+                a *= 3
+            else:
+                a //= 2
+        if a == m:
+            return str(len(op)), op
+
+while 1:
+    n, m = map(int, input().split())
+    if n:
+        print('\n'.join(jump(n, m)))
+    else:
+        break
+
+----author:吴永麒_2100012261,433B
+import queue
+
+def H(n: int):
+	return n*3
+
+
+def O(n: int):
+	return int(n/2)
+
+
+while True:
+	pre = set()
+	n, m = list(map(int, input().split()))
+	if (n, m) == (0, 0):
+		break
+	q = queue.Queue()
+	box0 = ('', n, 0)
+	q.put(box0)
+	while True:
+		a = q.get()
+		if a[1] == m:
+			break
+		if len(a[0]) <25 and a[1] not in pre:
+			pre.add(a[1])
+			q.put((a[0]+'H', H(a[1]), a[2]+1))
+			q.put((a[0]+'O', O(a[1]), a[2]+1))
+	print(a[2])
+	print(a[0])
+

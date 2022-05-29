@@ -1,0 +1,269 @@
+****001: 火星大工程
+----author:勺家农,29ms
+n,m = map(int,input().split())
+nodes = {i:{} for i in range(1,n+1)}
+parents = {i:set() for i in range(1,n+1)}
+early = [0]*(n+1)
+indegree = [0]*(n+1)
+for _ in range(m):
+    a,b,c = map(int,input().split())
+    nodes[a][b] = c
+    indegree[b] += 1
+seq = []
+inzero = []
+for i in range(1,n+1):
+    if indegree[i] == 0:
+        inzero.append(i)
+while inzero:
+    node = inzero.pop()
+    for b in nodes[node]:
+        indegree[b] -= 1
+        if indegree[b] == 0:
+            inzero.append(b)
+    seq.append(node)
+for i in seq:
+    for next in nodes[i]:
+        parents[next].add(i)
+        early[next] = max(early[next], early[i] + nodes[i][next])
+finish = max(early)
+print(finish)
+late = [finish]*(n+1)
+for i in reversed(seq):
+    for last in parents[i]:
+        late[last] = min(late[last], late[i]-nodes[last][i])
+for i in nodes:
+    for j in nodes[i]:
+        if early[i] + nodes[i][j] == late[j]:
+            print(i,j)
+
+----author:2100011518,29ms
+n,m = map(int,input().split())
+
+edges = [[] for i in range(n+2)]
+re_edges = [[] for i in range(n+2)]
+indegree = [0 for i in range(n+2)]
+outdegree = [0 for i in range(n+2)]
+for i in range(m):
+    a,b,c = map(int,input().split())
+    edges[a].append((c,a,b))
+    re_edges[b].append((c,b,a))
+    indegree[b] += 1
+    outdegree[a] += 1
+for i in range(1,n+1):
+    if indegree[i] == 0:
+        indegree[i] += 1
+        outdegree[0] += 1
+        edges[0].append((0,0,i))
+    elif outdegree[i] == 0:
+        outdegree[i] += 1
+        indegree[-1] += 1
+        re_edges[-1].append((0,n+1,i))
+        
+e = [0 for i in range(n+2)]
+l = [0 for i in range(n+2)]
+
+length = sum(indegree[:n+1])
+temp = []
+temp.extend(edges[0])
+for i in range(length):
+    op = temp.pop()
+    indegree[op[2]] -= 1
+    e[op[2]] = max(e[op[2]],e[op[1]]+op[0])
+    if not indegree[op[2]]:
+        temp.extend(edges[op[2]])
+
+length = sum(outdegree[1:])
+temp = []
+temp.extend(re_edges[-1])
+for i in range(length):
+    op = temp.pop()
+    outdegree[op[2]] -= 1
+    l[op[2]] = max(l[op[2]],l[op[1]]+op[0])
+    if not outdegree[op[2]]:
+        temp.extend(re_edges[op[2]])
+
+key = set()
+output = set()
+maxi = max(e)
+for i in range(1,n+1):
+    l[i] = maxi - l[i]
+    if e[i] == l[i]:
+        key.add(i)
+for i in range(1,n+1):
+    for j in edges[i]:
+        if j[1] in key and j[2] in key and\
+            e[j[1]] == e[j[2]]-j[0]:
+            output.add((j[1],j[2]))
+output = list(output)
+output = sorted(output)
+
+print(maxi)
+for i in output:
+    print(str(i[0])+' '+str(i[1]))
+
+----author:BillLiu,29ms
+n, m = map(int, input().split(" "))
+
+graph = [[] for i in range(n + 1)]
+degree_in = [0 for i in range(n + 1)]
+e_time = [0 for i in range(n + 1)]
+prev = [[] for i in range(n + 1)]
+
+class edge(object):
+	def __init__(self, end, val):
+		self.end = end
+		self.val = val
+		
+for i in range(m):
+	tmp1, tmp2, time = map(int, input().split(" "))
+	graph[tmp1].append(edge(tmp2, time))
+	degree_in[tmp2] += 1
+
+cnt = n
+while cnt:
+	for i in range(1, n + 1):
+		if degree_in[i] == 0:
+			cnt -= 1
+			#print("{} :".format(i))
+			for e in graph[i]:
+				#print(e.end)
+				if e_time[e.end] < e_time[i] + e.val:
+					#print("{} small {} prev {}".format(e_time[e.end], e_time[i] + e.val, i))
+					e_time[e.end] = e_time[i] + e.val
+					prev[e.end] = [i]
+					
+				elif e_time[e.end] == e_time[i] + e.val:
+					prev[e.end].append(i)
+					#print("equal {} prev {}".format(e_time[i] + e.val, i))
+				#print("what? {}".format(e_time[e.end]))
+				degree_in[e.end] -= 1
+			degree_in[i] = -1
+
+
+max_etime = 0
+pos = []
+for i in range(n, 0, -1):
+	#print(i)
+	#print(e_time[i])
+	if e_time[i] > max_etime:
+		pos = [i]
+		max_etime = e_time[i]
+	elif e_time[i] == max_etime:
+		pos.append(i)
+
+ans = []
+for p in pos:
+	if prev[p]:
+		for i in range(len(prev[p]) - 1, -1, - 1):
+			ans.append((prev[p][i], p))
+			if degree_in[prev[p][i]] != -2:
+				degree_in[prev[p][i]] = -2
+				pos.append(prev[p][i])
+
+ans.sort(key=lambda tup: tup[1])
+ans.sort(key=lambda tup: tup[0])
+print(max_etime)
+for a in ans:
+	print(a[0], a[1])
+
+
+****002: 兔子与星空
+----author:21n2100011499,19ms
+class edge:
+    def __init__(self,s,e,w):
+        self.s,self.e,self.w=s,e,w
+    def __lt__(self, other):
+        return self.w<other.w
+
+n=int(input())
+parent=[0]
+for i in range(1,n+1):
+    parent.append(i)
+def getfather(x):
+    if(parent[x]==x):
+        return x
+    else: parent[x]=getfather(parent[x])
+    return parent[x]
+alledge=[]
+for i in range(1,n):
+    s=input().split()
+    for j in range(int(s[1])):
+        alledge.append(edge(i,ord(s[2+j*2])-64,int(s[3+j*2])))
+alledge.sort()
+ans=0;done=0
+for e in alledge:
+    p1=getfather(e.s);p2=getfather(e.e)
+    if(p1==p2):
+        continue
+    ans+=e.w
+    parent[p1]=p2
+    done+=1
+    if(done==n-1): break
+print(ans)
+
+----author:1900012480_徐周(xuzhou),20ms
+n = int(input())
+cost=[[-1 for i in range(n)] for i in range(n)]
+for i in range(n-1):
+    x = input().split()
+    if x[1] != 0:
+        for j in range(int(x[1])):
+            k = ord(x[2*j+2])-ord('A')
+            cost[i][k] = cost[k][i] = int(x[2*j+3])
+dist = [float('inf')] * n
+dis = 0
+used = []
+while True:
+    if len(used) == n:
+        break
+    if len(used) == 0:
+        used.append(0)
+        for i in range(1,n):
+            if cost[0][i] != -1:
+                dist[i] = cost[0][i]
+    else:
+        d = float('inf')
+        for i in range(n):
+            if i not in used:
+                if dist[i] < d:
+                    d = dist[i]
+                    j = i
+        dis += d
+        used.append(j)
+        for i in range(n):
+            if cost[i][j] != -1 and i not in used:
+                dist[i] = min(dist[i],cost[j][i])
+print(dis)
+
+
+----author:2100011529(21n2100011529),20ms
+import heapq
+
+n = int(input())
+Map = [[0] * n for _ in range(n)]
+hep = [[] for _ in range(n)]
+vst = [False] * n
+out = 0
+for i in range(n - 1):
+    scn = input().split()
+    for k in range(int(scn[1])):
+        crt, lgh = scn[2*k+2], int(scn[2*k+3])
+        j = ord(crt) - 65
+        Map[i][j] = Map[j][i] = lgh
+for i in range(1, n):
+    heapq.heapify(hep[i])
+    if Map[0][i]:
+        heapq.heappush(hep[i], Map[0][i])
+for _ in range(n-1):
+    ptr = 0
+    for i in range(n):
+        if vst[i] or not hep[i]: continue
+        if ptr == 0 or hep[i][0] < hep[ptr][0]:
+            ptr = i
+    out += hep[ptr][0]
+    vst[ptr] = True
+    for i in range(n):
+        if not vst[i] and Map[i][ptr]:
+            heapq.heappush(hep[i], Map[i][ptr])
+print(out)
+

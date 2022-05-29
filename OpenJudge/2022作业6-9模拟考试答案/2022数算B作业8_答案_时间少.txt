@@ -1,0 +1,259 @@
+****001: 课程表
+----author:2000093020(rkdnjs),45ms
+def judge(req, cn):
+    indegree = [0 for i in range(cn)]
+    adj = [[] for i in range(cn)]
+    queue = []
+    for i in req:
+        indegree[i[0]] += 1
+        adj[i[1]].append(i[0])
+    for i in range(cn):
+        if indegree[i] == 0:
+            queue.append(i)
+    cnt = 0
+    while queue:
+        pre = queue.pop(0)
+        cnt += 1
+        for cur in adj[pre]:
+            indegree[cur] -= 1
+            if indegree[cur] == 0:
+                queue.append(cur)
+    return cnt == cn
+
+
+try:
+    while True:
+        inp = input().split()
+        if len(inp) == 0:
+            continue
+        else:
+            n, m = int(inp[0]), int(inp[1])
+        Req = []
+        for i in range(m):
+            t = input().split()
+            Req.append((int(t[0]), int(t[1])))
+        print(judge(Req, n))
+except EOFError:
+    pass
+
+
+----author:李骏博2100011038(2100011038),45ms
+
+
+def bfs(Glist,indegree):
+    q=[]
+    for i in range(n):
+        if indegree[i] == 0:
+            q.append(i)
+    temp=[]
+    while q:
+        k=q.pop(0)
+        temp.append(k)
+        for x in Glist[k]:
+            indegree[x]=indegree[x]-1
+            if indegree[x]==0:
+                q.append(x)
+    if len(temp)!=n:
+        return False
+    return True
+
+
+while True:
+    try:
+        s=input()
+        if not s:
+            continue
+        n,m=map(int,s.split())
+        Glist=[[]for i in range(n)]
+        indegree=[0 for i in range(n)]
+        for i in range(m):
+            cur,pre=map(int,input().split())
+            Glist[pre].append(cur)
+            indegree[cur]=indegree[cur]+1
+        if bfs(Glist,indegree):
+            print("True")
+        else:
+            print("False")
+    except:
+        break
+
+----author:1800011105(Revolt),45ms
+def topoSort(graph):
+    n=len(graph)
+    inDegree={vertex: 0 for vertex in graph}
+    frontier=[]
+    
+    for v1 in graph:
+        for v2 in graph[v1]:
+            inDegree[v2] += 1
+    for v in graph:
+        if inDegree[v]==0:
+            frontier.append(v)
+    sequence=[]
+    while frontier:
+        new=frontier.pop(0)
+        sequence.append(new)
+        for v in graph[new]:
+            if v not in graph: continue
+            inDegree[v] -= 1
+            if inDegree[v]==0:
+                frontier.append(v)
+                
+    return True if len(sequence)==n else False
+
+def driver():
+    while True:
+        try:
+            inputlist=input().split()
+            if len(inputlist)==0:
+                continue
+            n, m=map(int, inputlist)
+            graph={i: [] for i in range(0, n)}
+            for _ in range(m):
+                v1, v2=map(int, input().split())
+                graph[v1].append(v2)
+            print(topoSort(graph))
+        except EOFError:
+            break
+        
+driver()
+
+****002: Pots
+----author:1900011411,19ms
+import collections
+A, B, C = list(map(int, input().split()))
+operations = ['FILL(1)','FILL(2)','DROP(1)','DROP(2)','POUR(1,2)','POUR(2,1)']
+class step:
+    global A, B, C, visited
+    def __init__(self, x, way = '', steps = 0):
+         self.x = x
+         self.way = way
+         self.steps = steps
+    def Operation(self, i):
+        if i == 0:
+            node = (A, self.x[1])
+        if i == 1:
+            node = (self.x[0], B)
+        if i == 2:
+            node = (0, self.x[1])
+        if i == 3:
+            node = (self.x[0], 0)
+        total = self.x[0] + self.x[1]
+        if i == 4:
+            node = (total - min(total, B), min(total, B))
+        if i == 5:
+            node = (min(total, A), total - min(total, A))
+        if node in visited:
+            return None
+        else:
+            visited.add(node)
+            return step(node , self.way + '%d'%i, self.steps + 1)
+    def judge(self):
+        if self.x[0] == C or self.x[1] == C:
+            return True
+        else:
+            return False
+
+q = collections.deque()
+visited = set()
+q.append(step((0, 0), '', 0))
+while len(q) > 0:
+    s = q.popleft()
+    if s.judge():
+        print(s.steps)
+        Way = list(s.way)
+        for x in Way:
+            print(operations[int(x)])
+        break
+    else:
+        for i in range(6):
+            tmp = s.Operation(i)
+            if tmp:
+                q.append(tmp)
+if len(q) == 0:
+    print('impossible')
+
+----author:2000011710_姜天行,19ms
+m1 = ((0, 1), (-1, 0))
+m2 = ((1, 0), (0, -1))
+a, b, c = map(int, input().split())
+if c in (a, b):
+	print(1)
+	exit(print('FILL(%d)' % (1 if c == a else 2)))
+moves = m1 + m2 if a < b else m2 + m1
+g = [None] * (a + b)
+g[0] = (0, None)
+q = [0]
+while q:
+	pos = q.pop()
+	for move in moves:
+		nbrpos = pos + a * move[0] + b * move[1]
+		if 0 <= nbrpos <= a + b - 1 and g[nbrpos] is None:
+			g[nbrpos] = (pos, move)
+			if nbrpos == c:
+				break
+			q.insert(0, nbrpos)
+if g[c] is None:
+	exit(print('impossible'))
+ans = []
+d = {(0, 1): 'FILL(2)\nPOUR(2,1)', (-1, 0): 'DROP(1)\nPOUR(2,1)', (1, 0): 'FILL(1)\nPOUR(1,2)', (0, -1): 'DROP(2)\nPOUR(1,2)'}
+def traverse(pos):
+	if pos == 0:
+		return
+	parent, move = g[pos]
+	traverse(parent)
+	ans.append(d[move])
+traverse(c)
+if ans[-1][0] == 'D':
+	ans = ans[:-1]
+print(len(ans) * 2)
+print('\n'.join(ans))
+
+----author:1524(21n2100011524),19ms
+from collections import deque
+
+class path:
+    def __init__(self,ops,an,bn):
+        self.ops,self.an,self.bn = ops,an,bn
+
+a,b,c = map(int,input().split())
+traveled = {(0,0),(a,0),(0,b)}
+bfs = deque([path('FILL(1)',a,0),path('FILL(2)',0,b)])
+judge = 0
+while bfs:
+    opb = ['FILL(1)','FILL(2)','DROP(1)','DROP(2)','POUR(1,2)','POUR(2,1)']
+    p = bfs.popleft()
+    an,bn = p.an,p.bn
+    if p.an == c or p.bn == c:
+        judge = 1
+        break
+    paths = []
+    op = []
+    for i in opb:
+        temp = p.ops
+        op.append(temp + ' ' + i)
+    paths.append(path(op[0],a,bn))
+    paths.append(path(op[1],an,b))
+    paths.append(path(op[2],0,bn))
+    paths.append(path(op[3],an,0))
+    if p.an > b - p.bn:
+        paths.append(path(op[4],an-b+bn,b))
+    else:
+        paths.append(path(op[4],0,bn+an))
+    if p.bn > a - p.an:
+        paths.append(path(op[5],a,bn-a+an))
+    else:
+        paths.append(path(op[5],an+bn,0))
+    for i in paths:
+        t = (i.an,i.bn)
+        if t in traveled:continue
+        bfs.append(i)
+        traveled.add(t)
+if judge:
+    output = list(p.ops.split())
+    print(len(output))
+    for i in output:
+        print(i)
+else:
+    print('impossible')
+
